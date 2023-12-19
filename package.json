@@ -1,6 +1,6 @@
 {
   "name": "aws-cdk-products",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "bin": {
     "aws-cdk-products": "bin/aws-cdk-products.js"
   },
@@ -8,8 +8,7 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
-    "cdk": "cdk",
-    "start": "node app.js"
+    "cdk": "cdk"
   },
   "devDependencies": {
     "@types/jest": "^29.5.5",
@@ -22,7 +21,7 @@
   },
   "dependencies": {
     "@cdklabs/cdk-validator-cfnguard": "^0.0.57",
-    "aws-cdk-lib": "2.102.0",
+    "aws-cdk-lib": "^2.115.0",
     "constructs": "^10.0.0",
     "source-map-support": "^0.5.21"
   }

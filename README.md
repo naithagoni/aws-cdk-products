@@ -33,14 +33,20 @@
 
 # Application architecture diagram
 
-# Bootstrap the stack
+# Bootstraping the stack
   - After Building UI/REST APIs and Provisioning the UI/Backend As Code, before deploying the stack, make sure to issue `cdk bootstrap --output=./templates` command(**_Deploys the CDK toolkit stack into an AWS environment_**) so that CDK CLI will create the necessary CDK assets in AWS before the deployment.
 
-# Synthesizes the stack (IaaS)
+# Synthesizing the stack (IaaS)
   - You can synthesize the CDK app with `cdk synth --output=./templates` command(**_Synthesizes and prints the CloudFormation template for this stack_**). It will make sure the CDK code can be compiled to the CloudFormation template.
 
 # Deploying the Infrastructure to AWS
   - To provision the cloud resources and deploy the application code to AWS:
     ```
     cdk deploy --output=./templates
+    ```
+
+# Cleanup Infrastructure
+  - 
+    ```
+    cdk destroy --output=./templates
     ```

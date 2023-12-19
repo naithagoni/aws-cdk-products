@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import "source-map-support/register";
 import * as cdk from "aws-cdk-lib";
-import { CfnGuardValidator } from "@cdklabs/cdk-validator-cfnguard";
-import { InfrastructureStack } from "../lib/infrastructure-stack";
+// import { CfnGuardValidator } from "@cdklabs/cdk-validator-cfnguard";
+import { InfraStack } from "../lib/infrastructure-stack";
 
 const app = new cdk.App();
 //   {
@@ -16,8 +16,8 @@ const app = new cdk.App();
 // const prodStage = new Stage(app, 'ProdStage', {
 //   policyValidationBeta1: [...],
 // });
-new InfrastructureStack(app, "InfrastructureStack", {
+new InfraStack(app, "MyInfra", {
   /* If you don't specify 'env', this stack will be environment-agnostic. */
   // env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
-  env: { account: "<ACCOUNT_ID>", region: "us-east-1" },
+  env: { account: "680048507123", region: "us-east-1" },
 });
