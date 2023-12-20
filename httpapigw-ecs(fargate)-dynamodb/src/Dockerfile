@@ -1,5 +1,6 @@
 # Use an official Node.js runtime as a parent image
-FROM node:18-alpine
+# NOTE: You need to specify explicitly '--platform=linux/amd64' otherwise, ECS throws 'exec /usr/local/bin/docker-entrypoint.sh exec format error'
+FROM --platform=linux/amd64 node:18-alpine
 
 # Set the working directory in the container
 WORKDIR /app

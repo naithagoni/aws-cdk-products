@@ -10,7 +10,7 @@
     ```
     aws configure
     ```
-  - Configure credentials via Environment Variables - add the following variable in your `.zshrc` or .`bashrc` file and update the values.
+  - Alternatively, configure credentials via Environment Variables - add the following variable in your `.zshrc` or .`bashrc` file and update the values.
     ```
     export AWS_ACCESS_KEY_ID=your_access_key
     export AWS_SECRET_ACCESS_KEY=your_secret_key

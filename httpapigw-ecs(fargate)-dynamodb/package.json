@@ -1,8 +1,8 @@
 {
-  "name": "aws-cdk-products",
+  "name": "httpapigw-ecs-dynamodb",
   "version": "1.0.0",
   "bin": {
-    "aws-cdk-products": "bin/aws-cdk-products.js"
+    "httpapigw-ecs-dynamodb": "bin/httpapigw-ecs-dynamodb.js"
   },
   "scripts": {
     "build": "tsc",
