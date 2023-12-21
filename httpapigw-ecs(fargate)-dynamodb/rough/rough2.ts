@@ -18,7 +18,7 @@ export class InfraStack extends cdk.Stack {
     // For public subnets, the route table association is set to the main route table of the VPC, and for private subnets, it's associated with the route table created for the private subnet.
     // Create a VPC
     const vpc = new ec2.Vpc(this, "MyVPC", {
-      cidr: "10.0.0.0/16",
+      cidr: "10.0.0.0/16", // --> 172.31.0.0/16
       maxAzs: 2,
       enableDnsHostnames: true,
       enableDnsSupport: true,
@@ -52,11 +52,41 @@ export class InfraStack extends cdk.Stack {
       ],
     });
 
-    // Access individual subnets
-    const publicSubnet1 = vpc.publicSubnets[0];
-    const publicSubnet2 = vpc.publicSubnets[1];
-    const privateSubnet1 = vpc.privateSubnets[0];
-    const privateSubnet2 = vpc.privateSubnets[1];
+    // Create a public subnet 1
+    const publicSubnet1 = new ec2.PublicSubnet(this, "my-public-subnet1", {
+      availabilityZone: "us-east-1a",
+      vpcId: vpc.vpcId,
+      cidrBlock: "172.31.50.0/24",
+      mapPublicIpOnLaunch: true,
+    });
+
+    // Create a public subnet 2
+    const publicSubnet2 = new ec2.PublicSubnet(this, "my-public-subnet2", {
+      availabilityZone: "us-east-1b",
+      vpcId: vpc.vpcId,
+      cidrBlock: "172.31.51.0/24",
+      mapPublicIpOnLaunch: true,
+    });
+
+    // Create a private subnet 1
+    const privateSubnet1 = new ec2.PrivateSubnet(this, "my-private-subnet1", {
+      availabilityZone: "us-east-1a",
+      vpcId: vpc.vpcId,
+      cidrBlock: "172.31.52.0/24",
+    });
+
+    // Create a private subnet 2
+    const privateSubnet2 = new ec2.PrivateSubnet(this, "my-private-subnet2", {
+      availabilityZone: "us-east-1b",
+      vpcId: vpc.vpcId,
+      cidrBlock: "172.31.53.0/24",
+    });
+
+    // // Access individual subnets
+    // const publicSubnet1 = vpc.publicSubnets[0];
+    // const publicSubnet2 = vpc.publicSubnets[1];
+    // const privateSubnet1 = vpc.privateSubnets[0];
+    // const privateSubnet2 = vpc.privateSubnets[1];
 
     /** PUBLIC SUBNET 1 CONFIGURATION */
     // Route Table for Public Subnet 1

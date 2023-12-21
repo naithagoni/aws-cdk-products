@@ -6,6 +6,7 @@ import * as ecs from "aws-cdk-lib/aws-ecs";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as logs from "aws-cdk-lib/aws-logs";
 import * as ecs_patterns from "aws-cdk-lib/aws-ecs-patterns";
+import * as elbv2 from "aws-cdk-lib/aws-elasticloadbalancingv2";
 
 export class InfraStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -14,27 +15,10 @@ export class InfraStack extends cdk.Stack {
     // Create VPC
     const vpc = new ec2.Vpc(this, "my-vpc", {
       vpcName: "my-vpc",
-      maxAzs: 2,
+      cidr: "10.0.0.0/16",
+      defaultInstanceTenancy: ec2.DefaultInstanceTenancy.DEFAULT,
+      availabilityZones: ["us-east-1a", "us-east-1b"], // OR maxAzs: 2,
       natGateways: 1,
-    });
-
-    // Create ECS cluster
-    const cluster = new ecs.Cluster(this, "my-ecs-cluster", {
-      clusterName: "my-ecs-cluster",
-      vpc,
-    });
-
-    /** Logs */
-    const logGroup = new logs.LogGroup(this, "my-log-group", {
-      logGroupName: "my-log-group",
-      retention: logs.RetentionDays.ONE_DAY,
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
-    });
-
-    const logStream = new logs.LogStream(this, "my-log-stream", {
-      logGroup: logGroup,
-      logStreamName: "my-log-stream",
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
     /** IAM Roles & Policies */
@@ -63,7 +47,7 @@ export class InfraStack extends cdk.Stack {
     //     "logs:CreateLogStream",
     //     "logs:PutLogEvents",
     //   ],
-    //   resource: ["*"],
+    //   resource: [logGroup.logGroupArn],
     // };
 
     // // Create a custom policy
@@ -95,6 +79,51 @@ export class InfraStack extends cdk.Stack {
       )
     );
 
+    // Create a Security group
+    const securityGroup = new ec2.SecurityGroup(this, "my-security-group", {
+      securityGroupName: "my-security-group",
+      description: "security group",
+      vpc,
+      allowAllOutbound: true,
+    });
+
+    securityGroup.addIngressRule(
+      ec2.Peer.anyIpv4(),
+      /**
+       * To, allow SSH access from anyhwere -> ec2.Port.tcp(22).
+       * To, allow HTTP traffic from anyhwere -> ec2.Port.tcp(80).
+       * To, allow HTTPS traffic from anyhwere -> ec2.Port.tcp(443).
+       * To, allow ICMP traffic from a specific IP range -> ec2.Peer.ipv4('123.123.123.123/16'), ec2.Port.allIcmp().
+       */
+      ec2.Port.allTraffic(),
+      "allow traffic from anyhwere"
+    );
+
+    securityGroup.addEgressRule(
+      ec2.Peer.anyIpv4(),
+      ec2.Port.allTraffic(),
+      "allow outgoing traffic to anywhere"
+    );
+
+    // Create ECS cluster
+    const cluster = new ecs.Cluster(this, "my-ecs-cluster", {
+      clusterName: "my-ecs-cluster",
+      vpc,
+    });
+
+    /** Logs */
+    const logGroup = new logs.LogGroup(this, "my-log-group", {
+      logGroupName: "my-log-group",
+      retention: logs.RetentionDays.ONE_DAY,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    const logStream = new logs.LogStream(this, "my-log-stream", {
+      logGroup: logGroup,
+      logStreamName: "my-log-stream",
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
     // Create Fargate service
     const fargateService =
       new ecs_patterns.ApplicationLoadBalancedFargateService(
@@ -102,7 +131,10 @@ export class InfraStack extends cdk.Stack {
         "my-fargate-service",
         {
           serviceName: "my-fargate-service",
-          // securityGroups: [securityGroup],
+          taskSubnets: {
+            subnets: [...vpc.publicSubnets],
+          },
+          securityGroups: [securityGroup],
           cluster: cluster,
           taskImageOptions: {
             image: ecs.ContainerImage.fromAsset(
@@ -113,8 +145,7 @@ export class InfraStack extends cdk.Stack {
             },
             enableLogging: true,
             logDriver: new ecs.AwsLogDriver({
-              streamPrefix:
-                "my-fargate-service-image/my-ecs-container/ecs-task-id",
+              streamPrefix: logStream.logStreamName,
               logGroup: logGroup,
             }),
             executionRole,
@@ -123,14 +154,48 @@ export class InfraStack extends cdk.Stack {
             containerPort: 80,
             dockerLabels: {},
           },
+          publicLoadBalancer: true,
+          openListener: true,
+          listenerPort: 80,
           desiredCount: 2,
           cpu: 512,
           memoryLimitMiB: 1024,
         }
       );
 
-    // Health check
-    fargateService.targetGroup.configureHealthCheck({ path: "/health" });
+    // Create a Target group with type IP and register targets with PrivateSubnet1 and PrivateSubnet2
+    // --> "Primary Private IPv4 address(you get it from Network interfaces)".
+    // Create a Target Group
+    // const targetGroup = new elbv2.ApplicationTargetGroup(
+    //   this,
+    //   "my-ip-target-group",
+    //   {
+    //     targetType: elbv2.TargetType.IP,
+    //     targetGroupName: "my-ip-target-group",
+    //     protocol: elbv2.ApplicationProtocol.HTTP,
+    //     port: 80,
+    //     vpc: vpc,
+    //     protocolVersion: elbv2.ApplicationProtocolVersion.HTTP1,
+    //     healthCheck: {
+    //       enabled: true,
+    //       protocol: elbv2.Protocol.HTTP,
+    //       path: "/health",
+    //       // The port the load balancer uses when performing health checks on targets.
+    //       // By default, the health check port is the same as the target group's traffic port
+    //       port: "traffic-port",
+    //     },
+    //   }
+    // );
+
+    // fargateService.loadBalancer.addListener("my-alb-listener", {
+    //   protocol: elbv2.ApplicationProtocol.HTTP,
+    //   port: 80,
+    //   defaultTargetGroups: [targetGroup], // OR defaultAction: elbv2.ListenerAction.forward([targetGroup]),
+    //   open: true,
+    // });
+
+    // // Health check
+    // fargateService.targetGroup.configureHealthCheck({ path: "/health" });
 
     // Load balancer url
     new cdk.CfnOutput(this, "loadBalancerUrl", {
