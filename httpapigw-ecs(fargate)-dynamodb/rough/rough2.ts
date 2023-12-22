@@ -14,19 +14,19 @@ export class InfraStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
+    //** VPC & SUBNET CONFIGURATION */
     // When using subnetConfiguration in the Vpc construct, the route table associations for subnets are automatically handled based on the specified subnetType.
     // For public subnets, the route table association is set to the main route table of the VPC, and for private subnets, it's associated with the route table created for the private subnet.
     // Create a VPC
     const vpc = new ec2.Vpc(this, "MyVPC", {
       cidr: "10.0.0.0/16", // --> 172.31.0.0/16
-      maxAzs: 2,
+      maxAzs: 2, // OR availabilityZones: ["us-east-1a", "us-east-1b"],
       enableDnsHostnames: true,
       enableDnsSupport: true,
       defaultInstanceTenancy: ec2.DefaultInstanceTenancy.DEFAULT,
       subnetConfiguration: [
         {
           cidrMask: 18,
-          // Create Public Subnet 1 Route Table
           subnetType: ec2.SubnetType.PUBLIC,
           name: "PublicSubnet1",
           mapPublicIpOnLaunch: true,
@@ -52,6 +52,7 @@ export class InfraStack extends cdk.Stack {
       ],
     });
 
+    //** ALTERNATIVE SUBNET CONFIGURATION */
     // Create a public subnet 1
     const publicSubnet1 = new ec2.PublicSubnet(this, "my-public-subnet1", {
       availabilityZone: "us-east-1a",
@@ -81,6 +82,8 @@ export class InfraStack extends cdk.Stack {
       vpcId: vpc.vpcId,
       cidrBlock: "172.31.53.0/24",
     });
+
+    //** END OF ALTERNATIVE SUBNET CONFIGURATION */
 
     // // Access individual subnets
     // const publicSubnet1 = vpc.publicSubnets[0];
@@ -246,17 +249,12 @@ export class InfraStack extends cdk.Stack {
     PublicSubnet1Route.node.addDependency(vpcGatewayAttachment);
     PublicSubnet2Route.node.addDependency(vpcGatewayAttachment);
 
+    //** DYNAMODB CONFIGURATION */
     // Create DynamoDB table
     const dyTable = new dynamodb.Table(this, "MyDynamoDBTable", {
       partitionKey: { name: "itemId", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
-    });
-
-    // Create ECS cluster
-    const cluster = new ecs.Cluster(this, "MyECSCluster", {
-      vpc: vpc,
-      containerInsights: true,
     });
 
     const dynamoGatewayEndpoint = vpc.addGatewayEndpoint(
@@ -265,6 +263,112 @@ export class InfraStack extends cdk.Stack {
         service: ec2.GatewayVpcEndpointAwsService.DYNAMODB,
       }
     );
+
+    /** Logs */
+    const logGroup1 = new logs.LogGroup(this, "my-log-group", {
+      logGroupName: "my-log-group",
+      retention: logs.RetentionDays.ONE_DAY,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    const logStream = new logs.LogStream(this, "my-log-stream", {
+      logGroup: logGroup1,
+      logStreamName: "my-log-stream",
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    /** IAM Roles & Policies */
+    // Create ECS Task Role
+    const taskRole1 = new iam.Role(this, "my-ecs-task-role", {
+      assumedBy: new iam.ServicePrincipal("ecs-tasks.amazonaws.com"),
+      roleName: "my-ecs-task-role",
+      description: "This is a Task Role for ECS",
+    });
+
+    // Create ECS Execution Role
+    const executionRole1 = new iam.Role(this, "my-ecs-execution-role", {
+      assumedBy: new iam.ServicePrincipal("ecs-tasks.amazonaws.com"),
+      roleName: "my-ecs-execution-role",
+      description: "This is a Execution Role for ECS",
+    });
+
+    // Create a custom IAM policy statement
+    const customExecutionRolePolicyStatement = {
+      effect: iam.Effect.ALLOW,
+      action: [
+        "ecr:GetAuthorizationToken",
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:BatchGetImage",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents",
+      ],
+      resource: [logGroup1.logGroupArn],
+    };
+
+    // Create a custom policy
+    const newExecutionRolePolicy = new iam.Policy(
+      this,
+      "my-ecs-execution-role-policy",
+      {
+        policyName: "my-ecs-execution-role-policy",
+        statements: [
+          new iam.PolicyStatement(customExecutionRolePolicyStatement),
+        ],
+      }
+    );
+
+    // Attach a custom policy to an execution role
+    executionRole1.attachInlinePolicy(newExecutionRolePolicy);
+
+    // Alternatively, Add a managed policy to roles
+    taskRole1.addManagedPolicy(
+      iam.ManagedPolicy.fromAwsManagedPolicyName(
+        "service-role/AmazonECSTaskExecutionRolePolicy"
+      )
+    );
+
+    executionRole1.addManagedPolicy(
+      iam.ManagedPolicy.fromAwsManagedPolicyName(
+        // ? Some managed policy names start with "service-role/", some start with "job-function/", and some don't start with anything. Do include the prefix when constructing this object.
+        "service-role/AmazonECSTaskExecutionRolePolicy"
+      )
+    );
+
+    //** ECS CLUSTER CONFIGURATION */
+    // Create ECS cluster
+    const cluster = new ecs.Cluster(this, "MyECSCluster", {
+      vpc: vpc,
+      containerInsights: true,
+    });
+
+    // ** SECURITY GROUP CONFIGURATION */
+    // Create a Security group
+    const securityGroup = new ec2.SecurityGroup(this, "my-security-group", {
+      securityGroupName: "my-security-group",
+      description: "security group",
+      vpc,
+      allowAllOutbound: true,
+    });
+
+    securityGroup.addIngressRule(
+      ec2.Peer.anyIpv4(),
+      /**
+       * To, allow SSH access from anyhwere -> ec2.Port.tcp(22).
+       * To, allow HTTP traffic from anyhwere -> ec2.Port.tcp(80).
+       * To, allow HTTPS traffic from anyhwere -> ec2.Port.tcp(443).
+       * To, allow ICMP traffic from a specific IP range -> ec2.Peer.ipv4('123.123.123.123/16'), ec2.Port.allIcmp().
+       */
+      ec2.Port.allTraffic(),
+      "allow traffic from anyhwere"
+    );
+
+    securityGroup.addEgressRule(
+      ec2.Peer.anyIpv4(),
+      ec2.Port.allTraffic(),
+      "allow outgoing traffic to anywhere"
+    );
+    // ** END OF A SECURITY GROUP CONFIGURATION */
 
     // Security Group for ECS Service
     const ecsSecurityGroup = new ec2.SecurityGroup(this, "MyEcsSg", {
@@ -442,6 +546,76 @@ export class InfraStack extends cdk.Stack {
           securityGroups: [ecsSecurityGroup],
         }
       );
+
+    // Create Fargate service
+    const fargateService1 =
+      new ecs_patterns.ApplicationLoadBalancedFargateService(
+        this,
+        "my-fargate-service",
+        {
+          serviceName: "my-fargate-service",
+          taskSubnets: {
+            subnets: [...vpc.publicSubnets],
+          },
+          securityGroups: [securityGroup],
+          cluster: cluster,
+          taskImageOptions: {
+            image: ecs.ContainerImage.fromAsset(
+              path.resolve(__dirname, "../src/")
+            ),
+            environment: {
+              MY_VAR: "variable01",
+            },
+            enableLogging: true,
+            logDriver: new ecs.AwsLogDriver({
+              streamPrefix: "my-fargate-service",
+              logGroup: logGroup,
+            }),
+            executionRole,
+            taskRole,
+            containerName: "my-ecs-container",
+            containerPort: 80,
+            dockerLabels: {},
+          },
+          publicLoadBalancer: true,
+          openListener: true,
+          listenerPort: 80,
+          desiredCount: 2,
+          cpu: 512,
+          memoryLimitMiB: 1024,
+        }
+      );
+
+    // Create a Target group with type IP and register targets with PrivateSubnet1 and PrivateSubnet2
+    // --> "Primary Private IPv4 address(you get it from Network interfaces)".
+    // Create a Target Group
+    const targetGroup1 = new elbv2.ApplicationTargetGroup(
+      this,
+      "my-ip-target-group",
+      {
+        targetType: elbv2.TargetType.IP,
+        targetGroupName: "my-ip-target-group",
+        protocol: elbv2.ApplicationProtocol.HTTP,
+        port: 80,
+        vpc: vpc,
+        protocolVersion: elbv2.ApplicationProtocolVersion.HTTP1,
+        healthCheck: {
+          enabled: true,
+          protocol: elbv2.Protocol.HTTP,
+          path: "/health",
+          // The port the load balancer uses when performing health checks on targets.
+          // By default, the health check port is the same as the target group's traffic port
+          port: "traffic-port",
+        },
+      }
+    );
+
+    fargateService1.loadBalancer.addListener("my-alb-listener", {
+      protocol: elbv2.ApplicationProtocol.HTTP,
+      port: 80,
+      defaultTargetGroups: [targetGroup1], // OR defaultAction: elbv2.ListenerAction.forward([targetGroup]),
+      open: true,
+    });
 
     fargateService.node.addDependency(ecsTargetGroup);
     fargateService.node.addDependency(albListener);

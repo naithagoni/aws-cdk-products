@@ -352,7 +352,7 @@ export class InfrastructureStack extends cdk.Stack {
         healthCheck: {
           enabled: true,
           protocol: elbv2.Protocol.HTTP,
-          path: "/",
+          path: "/health",
           // The port the load balancer uses when performing health checks on targets.
           // By default, the health check port is the same as the target group's traffic port
           port: "traffic-port",
