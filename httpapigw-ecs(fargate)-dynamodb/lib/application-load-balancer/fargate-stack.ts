@@ -5,6 +5,7 @@ import * as path from "path";
 import { IamConfig } from "../iam/iam-stack";
 import { LogsConfig } from "../logs/logs-stack";
 import { VpcConfig } from "../virtual-private-cloud/vpc-config";
+import { DynamoDbConfig } from "../dynamodb/dynamodb-stack";
 
 export class FargateConfig extends Construct {
   public fargateService: ecs_patterns.ApplicationLoadBalancedFargateService;
@@ -15,6 +16,7 @@ export class FargateConfig extends Construct {
     const vpcConfig = new VpcConfig(this, "my-vpc");
     const logsConfig = new LogsConfig(this, "my-log-group");
     const iamConfig = new IamConfig(this, "my-ecs");
+    const dynamoDbConfig = new DynamoDbConfig(this, "my-dynamo-db");
 
     // TODO: Export it to 'ecs-stack.ts'
     const cluster = new ecs.Cluster(this, "my-ecs-cluster", {
@@ -35,7 +37,8 @@ export class FargateConfig extends Construct {
             path.resolve(__dirname, "../../src/")
           ),
           environment: {
-            MY_VAR: "variable01",
+            DYNAMO_TABLE_NAME: dynamoDbConfig.dyTable.tableName,
+            REGION: process.env.CDK_DEFAULT_REGION!,
           },
           enableLogging: true,
           logDriver: new ecs.AwsLogDriver({
