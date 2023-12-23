@@ -1,1 +1,1 @@
-# restapigw-ecs(fargate)-dynamodb
+# apigw(rest)-ecs(fargate)-dynamodb
