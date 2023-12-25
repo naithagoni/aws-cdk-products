@@ -22,16 +22,15 @@
   export AWS_REGION=your_region
   ```
 
-# Initializing a CDK project
+# Running the project
 
-1. Creating a new directory and change into that directory.
+1. To run this project, execute the following commands.
    ```
-   mkdir <PROJECT_NAME>
-   cd <PROJECT_NAME>
-   ```
-2. Initializing a cdk typescript project.
-   ```
-   cdk init app --language typescript
+   - git clone https://github.com/naithagoni/aws-cdk-projects.git
+   - cd aws-cdk-projects/apigw(http)-ecs(fargate)-dynamodb/src
+   - npm i
+   - cd aws-cdk-projects/apigw(http)-ecs(fargate)-dynamodb
+   - npm i
    ```
 
 # Application architecture diagram
@@ -58,3 +57,15 @@
 - ```
   cdk destroy --output=./templates
   ```
+
+# Steps to create a CDK project
+
+1. Creating a new directory and change into that directory.
+   ```
+   mkdir <PROJECT_NAME>
+   cd <PROJECT_NAME>
+   ```
+2. Initializing a cdk typescript project.
+   ```
+   cdk init app --language typescript
+   ```

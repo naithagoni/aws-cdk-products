@@ -6,6 +6,7 @@ import { IamConfig } from "../iam/iam-stack";
 import { LogsConfig } from "../logs/logs-stack";
 import { VpcConfig } from "../virtual-private-cloud/vpc-config";
 import { DynamoDbConfig } from "../dynamodb/dynamodb-stack";
+import { EcsClusterConfig } from "../elastic-container-service/ecs-stack";
 
 export class FargateConfig extends Construct {
   public fargateService: ecs_patterns.ApplicationLoadBalancedFargateService;
@@ -14,15 +15,18 @@ export class FargateConfig extends Construct {
 
     // Instantiate configs
     const vpcConfig = new VpcConfig(this, "my-vpc");
-    const logsConfig = new LogsConfig(this, "my-log-group");
-    const iamConfig = new IamConfig(this, "my-ecs");
     const dynamoDbConfig = new DynamoDbConfig(this, "my-dynamo-db");
-
-    // TODO: Export it to 'ecs-stack.ts'
-    const cluster = new ecs.Cluster(this, "my-ecs-cluster", {
-      clusterName: "my-ecs-cluster",
-      vpc: vpcConfig.vpc,
-    });
+    const logsConfig = new LogsConfig(this, "my-log-group");
+    const iamConfig = new IamConfig(
+      this,
+      "my-ecs",
+      dynamoDbConfig.dyTable.tableArn
+    );
+    const ecsConfig = new EcsClusterConfig(
+      this,
+      "my-ecs-cluster",
+      vpcConfig.vpc
+    );
 
     // Create Fargate service
     const fgService = new ecs_patterns.ApplicationLoadBalancedFargateService(
@@ -31,7 +35,7 @@ export class FargateConfig extends Construct {
       {
         serviceName: id,
         securityGroups: [vpcConfig.securityGroup],
-        cluster: cluster,
+        cluster: ecsConfig.cluster,
         taskImageOptions: {
           image: ecs.ContainerImage.fromAsset(
             path.resolve(__dirname, "../../src/")

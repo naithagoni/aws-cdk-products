@@ -4,8 +4,30 @@ import * as iam from "aws-cdk-lib/aws-iam";
 export class IamConfig extends Construct {
   public taskRole: iam.Role;
   public executionRole: iam.Role;
-  constructor(scope: Construct, id: string) {
+
+  constructor(scope: Construct, id: string, dyTableArn: string) {
     super(scope, id);
+
+    const dyPolicy = new iam.Policy(this, `${id}-task-role-policy`, {
+      policyName: `${id}-task-role-policy`,
+      statements: [
+        new iam.PolicyStatement({
+          actions: [
+            "dynamodb:List*",
+            "dynamodb:GetItem",
+            "dynamodb:PutItem",
+            "dynamodb:UpdateItem",
+            "dynamodb:DeleteItem",
+            "dynamodb:DescribeTable",
+            "dynamodb:UpdateTable",
+            "dynamodb:Query",
+            "dynamodb:Scan",
+          ],
+          effect: iam.Effect.ALLOW,
+          resources: [dyTableArn],
+        }),
+      ],
+    });
 
     // Create ECS Task Role
     this.taskRole = new iam.Role(this, `${id}-task-role`, {
@@ -13,6 +35,9 @@ export class IamConfig extends Construct {
       roleName: `${id}-task-role`,
       description: "This is a Task Role for ECS",
     });
+
+    // Attach required permissions to Fargate to operate/access dynamoDB
+    this.taskRole.attachInlinePolicy(dyPolicy);
 
     // Create ECS Execution Role
     const execRole = new iam.Role(this, `${id}-execution-role`, {
