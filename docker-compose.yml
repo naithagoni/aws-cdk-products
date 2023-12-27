@@ -1,0 +1,18 @@
+version: "3.8"
+services:
+  dynamodb-local:
+    image: "amazon/dynamodb-local:latest"
+    hostname: localhost
+    container_name: dynamodb-local
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
+    volumes:
+      - "./docker/dynamodb:/home/dynamodblocal/data"
+    ports:
+      - "8000:8000"
+    expose:
+      - "80"
+    environment:
+      DYNAMO_TABLE_NAME: "dummy-table"
+      REGION: "us-east-1"
+      AWS_ACCESS_KEY_ID: 'DUMMYIDEXAMPLE'
+      AWS_SECRET_ACCESS_KEY: 'DUMMYEXAMPLEKEY'

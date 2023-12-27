@@ -5,14 +5,16 @@ import {
   ScanCommand,
   GetCommand,
   PutCommand,
+  UpdateCommand,
   DeleteCommand,
 } from "@aws-sdk/lib-dynamodb";
+import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 
 const app = express();
 app.use(express.json());
 
 // Create a DynamoDB client
-const dbClient = new DynamoDBClient({ region: process.env.region });
+const dbClient = new DynamoDBClient({ region: process.env.REGION });
 const docClient = DynamoDBDocumentClient.from(dbClient);
 
 const TABLE_NAME = process.env.DYNAMO_TABLE_NAME;
@@ -56,12 +58,11 @@ app.get("/items/:id", async (req, res) => {
   }
 });
 
-app.put("/items", async (req, res) => {
+app.post("/items", async (req, res) => {
   try {
-    const data = req.body;
     const params = {
       TableName: TABLE_NAME,
-      Item: data,
+      Item: req.body,
     };
     await docClient.send(new PutCommand(params));
     res.status(201).json({ message: "Item created successfully" });
@@ -73,14 +74,28 @@ app.put("/items", async (req, res) => {
 
 app.put("/items/:id", async (req, res) => {
   try {
+    const updatedAttributes = {
+      itemName: req.body.itemName,
+      itemSize: req.body.itemSize,
+    };
+
     const params = {
       TableName: TABLE_NAME,
       Key: {
         itemId: req.params.id,
       },
-      Item: req.body,
+      UpdateExpression:
+        "SET " +
+        Object.keys(updatedAttributes)
+          .map((key) => `#${key} = :${key}`)
+          .join(", "),
+      ExpressionAttributeNames: Object.fromEntries(
+        Object.keys(updatedAttributes).map((key) => [`#${key}`, key])
+      ),
+      ExpressionAttributeValues: marshall(updatedAttributes),
     };
-    const command = new PutCommand(params);
+
+    const command = new UpdateCommand(params);
     await docClient.send(command);
     res.status(201).json({ message: "Item updated successfully" });
   } catch (error) {

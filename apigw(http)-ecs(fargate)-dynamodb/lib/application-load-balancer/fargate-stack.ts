@@ -35,7 +35,7 @@ export class FargateConfig extends Construct {
         cluster: cluster,
         taskImageOptions: {
           image: ecs.ContainerImage.fromAsset(
-            path.resolve(__dirname, "../../src/")
+            path.resolve(__dirname, "../../../backend/")
           ),
           environment: {
             DYNAMO_TABLE_NAME: tableName,

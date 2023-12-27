@@ -1,5 +1,5 @@
 {
-  "name": "httpapigw-ecs-dynamodb",
+  "name": "apigw-ecs-dynamodb",
   "version": "1.0.0",
   "bin": {
     "httpapigw-ecs-dynamodb": "bin/httpapigw-ecs-dynamodb.js"
@@ -10,6 +10,17 @@
     "test": "jest",
     "cdk": "cdk"
   },
+  "keywords": [
+    "AWS",
+    "AWS API Management",
+    "CloudFormation",
+    "API Gateway",
+    "ECS",
+    "Fargate",
+    "DynamoDB"
+  ],
+  "author": "Naresh Aithagoni",
+  "license": "ISC",
   "devDependencies": {
     "@types/jest": "^29.5.5",
     "@types/node": "20.7.1",
