@@ -8,9 +8,9 @@ export class InfraStack extends cdk.Stack {
 
     const httpApiConfig = new HttpApiGatewayConfig(this, "my-http-api-gateway");
 
-    // Http api url url
+    // Output Http api url
     new cdk.CfnOutput(this, "httpApiUrl", {
-      value: httpApiConfig.stage.url,
+      value: httpApiConfig.httpApi.apiEndpoint,
       exportName: "httpApiUrl",
     });
   }

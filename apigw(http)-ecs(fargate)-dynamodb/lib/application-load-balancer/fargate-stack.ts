@@ -27,6 +27,10 @@ export class FargateConfig extends Construct {
       id,
       {
         serviceName: id,
+        // By default, when you create a Fargate service using the AWS CDK, it is associated with an Elastic Load Balancer to route traffic to your containers.
+        // If you don't want to use an ELB, you can specify the assignPublicIp property to false when defining your Fargate service.
+        // This tells AWS CDK not to automatically create a public IP address for the Fargate tasks and thus avoids the need for an ELB.
+        assignPublicIp: false, // This prevents the automatic creation of an ELB
         securityGroups: [securityGroup],
         cluster: cluster,
         taskImageOptions: {

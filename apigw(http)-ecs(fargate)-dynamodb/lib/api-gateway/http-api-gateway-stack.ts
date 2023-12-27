@@ -9,7 +9,7 @@ import { IamConfig } from "../iam/iam-stack";
 import { EcsClusterConfig } from "../elastic-container-service/ecs-stack";
 
 export class HttpApiGatewayConfig extends Construct {
-  public stage: apigwv2.HttpStage;
+  public httpApi: apigwv2.HttpApi;
   constructor(scope: Construct, id: string) {
     super(scope, id);
     // Instantiate configs
@@ -41,38 +41,67 @@ export class HttpApiGatewayConfig extends Construct {
     const vpcLink = new apigwv2.VpcLink(this, "my-vpc-link", {
       vpc: vpcConfig.vpc,
       vpcLinkName: "my-vpc-link",
+      subnets: vpcConfig.vpc,
+      securityGroups: [vpcConfig.securityGroup],
     });
 
     const api = new apigwv2.HttpApi(this, id, {
       apiName: id,
-      description: "This is a basic HTTP methods",
-      // defaultIntegration:
-      createDefaultStage: true,
+      description: "This is a basic HTTP API Gateway",
+      createDefaultStage: false,
       corsPreflight: {
         allowCredentials: false,
         allowHeaders: ["*"],
         allowMethods: [apigwv2.CorsHttpMethod.ANY],
         allowOrigins: ["*"],
-        // exposeHeaders: []
       },
     });
 
-    // Create a custom stage
-    // this.stage = new apigwv2.HttpStage(this, "my-custom-stage", {
-    //   httpApi: api,
-    //   stageName: "dev",
-    //   autoDeploy: true,
-    // });
+    // Create a default stage
+    api.addStage("default-http-api-stage", {
+      // stageName: "stage",
+      stageName: "$default",
+      autoDeploy: true,
+    });
 
-    // Create Route, Method, and attach an integration
+    // Create an integration
+    const integration = new HttpAlbIntegration(
+      "private-alb-integration",
+      fargateConfig.fargateService.listener,
+      { vpcLink }
+    );
+
+    // Create Routes, Methods, and attach an integration
     api.addRoutes({
       path: "/items",
       methods: [apigwv2.HttpMethod.GET],
-      integration: new HttpAlbIntegration(
-        "default-integration",
-        fargateConfig.fargateService.listener,
-        { vpcLink, method: apigwv2.HttpMethod.GET }
-      ),
+      integration: integration,
     });
+
+    api.addRoutes({
+      path: "/items/{id}",
+      methods: [apigwv2.HttpMethod.GET],
+      integration: integration,
+    });
+
+    api.addRoutes({
+      path: "/items",
+      methods: [apigwv2.HttpMethod.POST],
+      integration: integration,
+    });
+
+    api.addRoutes({
+      path: "/items/{id}",
+      methods: [apigwv2.HttpMethod.PUT],
+      integration: integration,
+    });
+
+    api.addRoutes({
+      path: "/items/{id}",
+      methods: [apigwv2.HttpMethod.DELETE],
+      integration: integration,
+    });
+
+    this.httpApi = api;
   }
 }
