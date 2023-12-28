@@ -10,9 +10,9 @@ services:
     ports:
       - "8000:8000"
     expose:
-      - "80"
+      - "8000"
     environment:
       DYNAMO_TABLE_NAME: "dummy-table"
       REGION: "us-east-1"
-      AWS_ACCESS_KEY_ID: 'DUMMYIDEXAMPLE'
-      AWS_SECRET_ACCESS_KEY: 'DUMMYEXAMPLEKEY'
+      AWS_ACCESS_KEY_ID: 'fakeMyKeyId'
+      AWS_SECRET_ACCESS_KEY: 'fakeSecretAccessKey'
