@@ -1,0 +1,21 @@
+.MuiIconButton-root {
+  color: rgba(235, 235, 245, 0.6) !important;
+
+  &.delete:hover {
+    color: #d5393e !important;
+  }
+
+  &.edit:hover {
+    color: #747bff !important;
+  }
+
+  &:focus,
+  &:focus-visible {
+    outline: none !important;
+  }
+
+  &:disabled {
+    cursor: not-allowed !important;
+    color: rgba(235, 235, 245, 0.38) !important;
+  }
+}

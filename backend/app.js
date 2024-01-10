@@ -65,18 +65,18 @@ app.get("/items/:id", async (req, res) => {
 /**
  * @typedef {Object} UserDetails
  * @property {string} itemId
- * @property {string} userName
+ * @property {string} username
  * @property {string} email
  * @property {string} password
- * @property {FullName} fullName
+ * @property {FullName} fullname
  * @property {string} phone
  * @property {Address} address
  */
 
 /**
  * @typedef {Object} FullName
- * @property {string} firstName
- * @property {string} lastName
+ * @property {string} firstname
+ * @property {string} lastname
  */
 
 /**
@@ -104,12 +104,12 @@ app.post("/items", async (req, res) => {
 app.put("/items/:id", async (req, res) => {
   try {
     let updatedAttributes = {
-      userName: req.body.userName,
+      username: req.body.username,
       email: req.body.email,
       password: req.body.password,
       fullName: {
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
+        firstname: req.body.firstname,
+        lastname: req.body.lastname,
       },
       phone: req.body.phone,
       address: {
