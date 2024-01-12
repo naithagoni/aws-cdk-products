@@ -7,18 +7,21 @@ import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import Slide from "@mui/material/Slide";
 import { TransitionProps } from "@mui/material/transitions";
+import { User } from "../../types/user";
 
-const DialogBox = () => {
-  const [open, setOpen] = React.useState(false);
+type DialogProps = {
+  data: User | null;
+  open: boolean;
+  handleClose: () => void;
+  handleConfirm: () => void;
+};
 
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
-
+const DialogConfirm: React.FC<DialogProps> = ({
+  data,
+  open,
+  handleClose,
+  handleConfirm,
+}) => {
   const Transition = React.forwardRef(function Transition(
     props: TransitionProps & {
       children: React.ReactElement<any, any>;
@@ -30,14 +33,11 @@ const DialogBox = () => {
 
   return (
     <React.Fragment>
-      <Button variant="outlined" onClick={handleClickOpen}>
-        Slide in alert dialog
-      </Button>
       <Dialog
         open={open}
         TransitionComponent={Transition}
         keepMounted
-        onClose={handleClose}
+        onClose={handleConfirm}
         aria-describedby="alert-dialog-slide-description"
       >
         <DialogTitle>Are you sure you want to delete a user?</DialogTitle>
@@ -47,12 +47,16 @@ const DialogBox = () => {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>No</Button>
-          <Button onClick={handleClose}>Yes</Button>
+          <Button className="alert-dialog-no" onClick={handleClose}>
+            No
+          </Button>
+          <Button className="alert-dialog-confirm" onClick={handleConfirm}>
+            Confirm
+          </Button>
         </DialogActions>
       </Dialog>
     </React.Fragment>
   );
 };
 
-export default DialogBox;
+export default DialogConfirm;
