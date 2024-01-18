@@ -1,20 +1,40 @@
 import React, { useCallback, useMemo } from "react";
 import { Column, Row, useTable } from "react-table";
+
 import IconButton from "@mui/material/IconButton";
 import DeleteForeverRoundedIcon from "@mui/icons-material/DeleteForeverRounded";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+
 import DialogConfirm from "../Dialog/Dialog-confirm";
 import { User } from "../../types/user";
+import useDeleteUser from "../../hooks/useDeleteUser";
 import "./Table.scss";
 
 type TableProps = {
   data: User[];
+  onDeleteUser: (id: string) => void;
 };
 
-const Table: React.FC<TableProps> = ({ data }) => {
+const Table: React.FC<TableProps> = ({ data, onDeleteUser }) => {
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = React.useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
   const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
+
+  const { deleteUser } = useDeleteUser(selectedUser?.id + "");
+
+  const handleConfirmDelete = async () => {
+    if (selectedUser) {
+      setIsConfirmDialogOpen(false);
+      try {
+        await deleteUser();
+        onDeleteUser(selectedUser.id.toString());
+      } catch (error) {
+        console.error("Error deleting user:", error);
+      } finally {
+        setSelectedUser(null);
+      }
+    }
+  };
 
   const handleEdit = useCallback(
     (row: Row<User>) => {
@@ -110,14 +130,12 @@ const Table: React.FC<TableProps> = ({ data }) => {
               setSelectedUser(null);
               setIsConfirmDialogOpen(false);
             }}
-            handleConfirm={() => {
-              console.log("Dialog closed. Additional logic or state reset.");
-              // Reset selectedUser
-              setSelectedUser(null);
-              setIsConfirmDialogOpen(false);
-            }}
+            handleConfirm={handleConfirmDelete}
           />
         )}
+        {/* Optionally show loading or error messages */}
+        {/* {loading && <p>Deleting...</p>}
+        {error && <p>Error occurred: {(error as Error)?.message}</p>} */}
       </div>
     </React.Fragment>
   );
