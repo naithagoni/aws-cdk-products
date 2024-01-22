@@ -9,6 +9,15 @@ export type User = {
   actions?: unknown;
 };
 
+export type AddUser = {
+  email: string;
+  username: string;
+  password: string;
+  name: Fullname;
+  address: Address;
+  phone: string;
+};
+
 type Fullname = {
   firstname: string;
   lastname: string;

@@ -1,11 +1,11 @@
 import { useCallback, useState } from "react";
 import usersApi from "../services/usersApi";
-import axios, { AxiosResponse } from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
 
 const useDeleteUser = (id: string) => {
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState<AxiosResponse>();
-  const [error, setError] = useState<unknown>();
+  const [error, setError] = useState<AxiosError>();
 
   const deleteUser = useCallback(async () => {
     if (!id) {
@@ -23,7 +23,7 @@ const useDeleteUser = (id: string) => {
       if (axios.isCancel(err)) {
         console.log("Request canceled:", err.message);
       } else {
-        setError(err);
+        setError(err as AxiosError);
       }
     } finally {
       setLoading(false);

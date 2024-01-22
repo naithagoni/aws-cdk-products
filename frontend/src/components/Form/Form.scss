@@ -1,0 +1,22 @@
+.form-container {
+  display: flex;
+  flex-direction: column;
+
+  .form-field-container {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+
+    .form-field-required {
+      color: #f14158;
+    }
+
+    .error-message {
+      font-size: 12px;
+      font-weight: 400;
+      font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+      color: #f14158;
+      letter-spacing: 0.5px;
+    }
+  }
+}

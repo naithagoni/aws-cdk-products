@@ -1,11 +1,13 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Column, Row, useTable } from "react-table";
 
 import IconButton from "@mui/material/IconButton";
 import DeleteForeverRoundedIcon from "@mui/icons-material/DeleteForeverRounded";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 
 import DialogConfirm from "../Dialog/Dialog-confirm";
+import DialogAddUser from "../Dialog/Dialog-add-user";
 import { User } from "../../types/user";
 import useDeleteUser from "../../hooks/useDeleteUser";
 import "./Table.scss";
@@ -16,9 +18,10 @@ type TableProps = {
 };
 
 const Table: React.FC<TableProps> = ({ data, onDeleteUser }) => {
-  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = React.useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
-  const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+  const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   const { deleteUser } = useDeleteUser(selectedUser?.id + "");
 
@@ -54,6 +57,11 @@ const Table: React.FC<TableProps> = ({ data, onDeleteUser }) => {
     [isConfirmDialogOpen]
   );
 
+  const handleAddUser = useCallback(() => {
+    console.log("Add clicked for row:");
+    setIsAddUserDialogOpen(!isAddUserDialogOpen);
+  }, [isAddUserDialogOpen]);
+
   const columns: Column<User>[] = useMemo(
     () => [
       { Header: "ID", accessor: (row: User) => row.id.toString() },
@@ -69,14 +77,17 @@ const Table: React.FC<TableProps> = ({ data, onDeleteUser }) => {
         Cell: ({ row }: { row: Row<User> }) => (
           <>
             <IconButton
-              className="edit"
+              className="edit-user-button"
               style={{ marginRight: "5px" }}
               onClick={() => handleEdit(row)}
               disabled={true}
             >
               <EditOutlinedIcon />
             </IconButton>
-            <IconButton className="delete" onClick={() => handleDelete(row)}>
+            <IconButton
+              className="delete-user-button"
+              onClick={() => handleDelete(row)}
+            >
               <DeleteForeverRoundedIcon />
             </IconButton>
           </>
@@ -96,6 +107,14 @@ const Table: React.FC<TableProps> = ({ data, onDeleteUser }) => {
     <React.Fragment>
       <div className="table-container">
         <h1>Users List</h1>
+        <div className="add-user-button-container">
+          <IconButton
+            className="add-user-button"
+            onClick={() => handleAddUser()}
+          >
+            <AddCircleOutlineIcon />
+          </IconButton>
+        </div>
         <table {...getTableProps()}>
           <thead>
             {headerGroups.map((headerGroup) => (
@@ -133,9 +152,12 @@ const Table: React.FC<TableProps> = ({ data, onDeleteUser }) => {
             handleConfirm={handleConfirmDelete}
           />
         )}
-        {/* Optionally show loading or error messages */}
-        {/* {loading && <p>Deleting...</p>}
-        {error && <p>Error occurred: {(error as Error)?.message}</p>} */}
+        {isAddUserDialogOpen && (
+          <DialogAddUser
+            open={isAddUserDialogOpen}
+            // handleAddUser={handleAddUser}
+          />
+        )}
       </div>
     </React.Fragment>
   );

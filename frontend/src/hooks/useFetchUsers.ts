@@ -1,12 +1,12 @@
 import { useEffect, useState, useCallback } from "react";
-import axios, { CancelTokenSource } from "axios";
+import axios, { AxiosError, CancelTokenSource } from "axios";
 import usersApi from "../services/usersApi";
 import { User } from "../types/user";
 
 const useFetchUsers = (id?: string, params?: string) => {
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
-  const [error, setError] = useState<unknown>(null);
+  const [error, setError] = useState<AxiosError>();
 
   const constructUrl = useCallback(() => {
     const url = id ? `/${id}` : "";
@@ -26,7 +26,7 @@ const useFetchUsers = (id?: string, params?: string) => {
         if (axios.isCancel(err)) {
           console.log("Request canceled:", err.message);
         } else {
-          setError(err);
+          setError(err as AxiosError);
         }
       } finally {
         setLoading(false);
