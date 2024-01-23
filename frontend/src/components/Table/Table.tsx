@@ -9,21 +9,26 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import DialogConfirm from "../Dialog/Dialog-confirm";
 import DialogAddUser from "../Dialog/Dialog-add-user";
 import { User } from "../../types/user";
+
 import useDeleteUser from "../../hooks/useDeleteUser";
+import useCreateUser from "../../hooks/useCreateUser";
+
 import "./Table.scss";
 
 type TableProps = {
   data: User[];
   onDeleteUser: (id: string) => void;
+  onAddUser: (newUser: User) => void;
 };
 
-const Table: React.FC<TableProps> = ({ data, onDeleteUser }) => {
+const Table: React.FC<TableProps> = ({ data, onDeleteUser, onAddUser }) => {
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   const { deleteUser } = useDeleteUser(selectedUser?.id + "");
+  const { createUser } = useCreateUser();
 
   const handleConfirmDelete = async () => {
     if (selectedUser) {
@@ -50,7 +55,6 @@ const Table: React.FC<TableProps> = ({ data, onDeleteUser }) => {
 
   const handleDelete = useCallback(
     (row: Row<User>) => {
-      console.log("Delete clicked for row:", row.original);
       setSelectedUser(row.original);
       setIsConfirmDialogOpen(!isConfirmDialogOpen);
     },
@@ -58,9 +62,39 @@ const Table: React.FC<TableProps> = ({ data, onDeleteUser }) => {
   );
 
   const handleAddUser = useCallback(() => {
-    console.log("Add clicked for row:");
     setIsAddUserDialogOpen(!isAddUserDialogOpen);
   }, [isAddUserDialogOpen]);
+
+  const handleFormSubmit = async (
+    fData: Record<string | number, string> | any
+  ) => {
+    setIsAddUserDialogOpen(false);
+    try {
+      const res = await createUser(fData);
+      const newUser: User = {
+        id: res.id,
+        email: fData.email,
+        username: fData.username,
+        password: fData.password,
+        name: {
+          firstname: fData.firstname,
+          lastname: fData.lastname,
+        },
+        address: {
+          street: fData.street,
+          zipcode: fData.zipcode,
+          city: fData.city,
+        },
+        phone: fData.phone,
+      };
+      console.log("NEW USER", newUser);
+      if (newUser) {
+        onAddUser(newUser);
+      }
+    } catch (error) {
+      console.error("Error creating user:", error);
+    }
+  };
 
   const columns: Column<User>[] = useMemo(
     () => [
@@ -155,7 +189,7 @@ const Table: React.FC<TableProps> = ({ data, onDeleteUser }) => {
         {isAddUserDialogOpen && (
           <DialogAddUser
             open={isAddUserDialogOpen}
-            // handleAddUser={handleAddUser}
+            onFormSubmit={handleFormSubmit}
           />
         )}
       </div>

@@ -76,6 +76,10 @@ const addUserSchema = {
         value: 6,
         message: "Zip Code should have at least 6 characters",
       },
+      maxLength: {
+        value: 6,
+        message: "Zip Code should not exceed 6 characters",
+      },
     },
   },
   city: {
@@ -83,6 +87,23 @@ const addUserSchema = {
     type: "text",
     placeholder: "Enter your City",
     required: false,
+  },
+  phone: {
+    label: "Phone",
+    type: "number",
+    placeholder: "Enter your Phone number",
+    required: true,
+    validation: {
+      required: "Phone number is required",
+      minLength: {
+        value: 10,
+        message: "Phone number should have at least 10 characters",
+      },
+      maxLength: {
+        value: 11,
+        message: "Phone number should not exceed 11 characters",
+      },
+    },
   },
 };
 

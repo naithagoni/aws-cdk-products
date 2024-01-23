@@ -1,9 +1,11 @@
+@use "variables";
+
 input {
   padding: 10px;
   border-radius: 4px;
-  background-color: #161618;
-  color: rgba(255, 255, 245, 0.86);
-  font-size: 12px;
+  background-color: variables.$bg-alt;
+  color: $text-1;
+  font-size: 13px;
   font-weight: 400;
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -14,11 +16,11 @@ input {
   margin-bottom: 5px;
 
   &:hover {
-    border: 1px solid #a8b1ff;
+    border: 1px solid $indigo-1;
   }
 
   &::placeholder {
-    color: rgba(235, 235, 245, 0.6);
+    color: $text-2;
   }
 }
 
@@ -26,5 +28,14 @@ label {
   font-size: 14px;
   font-weight: 600;
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  color: rgba(255, 255, 245, 0.86);
+  color: $text-1;
+}
+
+// Hide Up & Down Arrow Buttons
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  margin: 0;
 }

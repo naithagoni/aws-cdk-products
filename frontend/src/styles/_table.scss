@@ -4,8 +4,8 @@ table {
 }
 
 tr {
-  background-color: #1b1b1f;
-  border-top: 1px solid #2e2e32;
+  background-color: $bg;
+  border-top: 1px solid $divider;
   transition: background-color 0.5s;
 }
 
@@ -13,7 +13,7 @@ th,
 td {
   padding: 8px;
   text-align: left;
-  border: 1px solid #2e2e32;
+  border: 1px solid $divider;
 }
 
 td {
@@ -23,13 +23,13 @@ td {
 th {
   font-size: 14px;
   font-weight: 600;
-  color: rgba(235, 235, 245, 0.6);
-  background-color: #202127;
+  color: $text-2;
+  background-color: $bg-soft;
 }
 
 tbody tr:nth-child(2n) {
-  background-color: #202127;
-  color: rgba(235, 235, 245, 0.86);
+  background-color: $bg-soft;
+  color: $text-1;
 }
 
 // tbody tr:hover {

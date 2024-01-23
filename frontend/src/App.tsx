@@ -22,12 +22,22 @@ const App = () => {
     setTableData(updatedData);
   };
 
+  const handleAddNewUser = (newUser: User) => {
+    setTableData((prevUsers) => [...prevUsers, newUser]);
+  };
+
   if (loading) return <h3>Loading...</h3>;
   if (error) return <h3>Error: {error?.message}</h3>;
 
   return (
     <div className="App">
-      {users && <Table data={tableData} onDeleteUser={handleDeleteUser} />}
+      {users && (
+        <Table
+          data={tableData}
+          onDeleteUser={handleDeleteUser}
+          onAddUser={handleAddNewUser}
+        />
+      )}
     </div>
   );
 };

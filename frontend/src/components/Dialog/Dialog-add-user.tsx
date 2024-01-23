@@ -9,9 +9,13 @@ import "./Dialog-add-user.scss";
 
 type DialogAddUserProps = {
   open: boolean;
+  onFormSubmit: (formData: Record<string | number, string>) => void;
 };
 
-const DialogAddUser: React.FC<DialogAddUserProps> = ({ open }) => {
+const DialogAddUser: React.FC<DialogAddUserProps> = ({
+  open,
+  onFormSubmit,
+}) => {
   const Transition = React.forwardRef(function Transition(
     props: TransitionProps & {
       children: React.ReactElement<any, any>;
@@ -21,8 +25,13 @@ const DialogAddUser: React.FC<DialogAddUserProps> = ({ open }) => {
     return <Slide direction="up" ref={ref} {...props} />;
   });
 
+  // Prevent closing a dialog on back drop click
   const handleClose: DialogProps["onClose"] = (event, reason) => {
     if (reason && reason === "backdropClick") return;
+  };
+
+  const handleFormSubmit = (formData: Record<string | number, string>) => {
+    onFormSubmit(formData);
   };
 
   return (
@@ -36,7 +45,7 @@ const DialogAddUser: React.FC<DialogAddUserProps> = ({ open }) => {
         disableEscapeKeyDown={true}
         aria-describedby="alert-dialog-slide-description"
       >
-        <DynamicForm schema={addUserSchema} />
+        <DynamicForm schema={addUserSchema} onFormSubmit={handleFormSubmit} />
       </Dialog>
     </React.Fragment>
   );

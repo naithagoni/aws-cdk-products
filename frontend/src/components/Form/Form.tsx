@@ -1,11 +1,13 @@
 import { useForm } from "react-hook-form";
+import { preventNonNumeric } from "../../utils/utils";
 import "./Form.scss";
 
-type FormProps = {
+type DynamicFormProps = {
   schema: Record<string, unknown>;
+  onFormSubmit: (data: Record<string | number, string>) => void;
 };
 
-const DynamicForm: React.FC<FormProps> = ({ schema }) => {
+const DynamicForm: React.FC<DynamicFormProps> = ({ schema, onFormSubmit }) => {
   const {
     register,
     handleSubmit,
@@ -13,7 +15,9 @@ const DynamicForm: React.FC<FormProps> = ({ schema }) => {
     setValue,
   } = useForm();
 
-  const onSubmit = (data: unknown) => console.log("FORM DATA", data);
+  const onSubmit = (data: Record<string | number, string>) => {
+    onFormSubmit(data);
+  };
 
   const handleInputChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -47,6 +51,9 @@ const DynamicForm: React.FC<FormProps> = ({ schema }) => {
             <input
               type={field.type}
               placeholder={field.placeholder}
+              {...(field.type === "number"
+                ? { onKeyDown: preventNonNumeric }
+                : {})}
               {...register(key, field.validation)}
               onChange={handleInputChange}
             />

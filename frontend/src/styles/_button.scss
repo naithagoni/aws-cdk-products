@@ -8,26 +8,25 @@
   transition: border-color 0.25s;
 
   &--primary {
-    border: 1px solid #747bff;
-    background-color: #646cff;
-    color: #ffffff;
+    border: 1px solid $brand-light;
+    background-color: $brand;
+    color: $white;
 
     &:hover {
-      border-color: #747bff;
-      color: rgba(255, 255, 245, 0.86);
-      background-color: #747bff;
+      border-color: $brand-light;
+      color: $text-1;
+      background-color: $brand-light;
     }
   }
 
   &--secondary {
     border: 1px solid transparent;
-    background-color: #161618;
-    color: rgba(235, 235, 245, 0.6);
+    background-color: $bg-alt;
+    color: $text-2;
 
     &:hover {
-      // border-color: #646cff;
-      border-color: #a8b1ff;
-      color: rgba(255, 255, 245, 0.86);
+      border-color: $indigo-1;
+      color: $text-1;
     }
 
     &:focus,
@@ -38,7 +37,7 @@
     &:disabled {
       border-color: transparent;
       cursor: not-allowed;
-      color: rgba(235, 235, 245, 0.38);
+      color: $text-3;
     }
   }
 }
