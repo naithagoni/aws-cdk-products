@@ -1,13 +1,12 @@
-@import "./styles/variables";
+@use "./styles/variables" as v;
 
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: $text-1;
-  background-color: $bg;
+  color: v.$text-1;
+  background-color: v.$bg;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -17,11 +16,11 @@
 
 a {
   font-weight: 500;
-  color: $brand;
+  color: v.$brand;
   text-decoration: inherit;
 
   &:hover {
-    color: $brand-dark;
+    color: v.$brand-dark;
   }
 }
 
@@ -39,10 +38,10 @@ code {
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
-    background-color: $white;
+    background-color: v.$white;
   }
   a:hover {
-    color: $brand-light;
+    color: v.$brand-light;
   }
   button {
     background-color: #f9f9f9;

@@ -1,4 +1,4 @@
-@import "../../styles/variables";
+@use "../../styles/global" as g;
 
 .form-container {
   display: flex;
@@ -10,14 +10,14 @@
     margin-bottom: 15px;
 
     .form-field-required {
-      color: $red-3;
+      color: g.$red-3;
     }
 
     .error-message {
       font-size: 12px;
       font-weight: 400;
       font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-      color: $red-3;
+      color: g.$red-3;
       letter-spacing: 0.5px;
     }
   }

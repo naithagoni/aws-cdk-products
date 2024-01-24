@@ -1,18 +1,20 @@
+@use "variables" as v;
+
 .MuiIconButton-root {
-  color: $text-2 !important;
+  color: v.$text-2 !important;
 
   &.delete-user-button:hover {
-    color: $red-4 !important;
+    color: v.$red-4 !important;
   }
 
   &.edit-user-button:hover {
-    color: $brand-light !important;
+    color: v.$brand-light !important;
   }
 
   &.add-user-button {
-    color: $brand !important;
+    color: v.$brand !important;
     &:hover {
-      color: $brand-light !important;
+      color: v.$brand-light !important;
     }
   }
 
@@ -23,33 +25,33 @@
 
   &:disabled {
     cursor: not-allowed !important;
-    color: $text-3 !important;
+    color: v.$text-3 !important;
   }
 }
 
 .MuiPaper-root {
-  border: 1px solid $bg-soft !important;
+  border: 1px solid v.$bg-soft !important;
   border-radius: 12px !important;
-  background-color: $bg-soft !important;
+  background-color: v.$bg-soft !important;
 
   h2 {
     font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif !important;
     line-height: 24px !important;
     font-size: 16px !important;
     font-weight: 600 !important;
-    color: $text-1 !important;
+    color: v.$text-1 !important;
   }
 
   p {
     font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
     font-size: 14px;
     font-weight: 500;
-    color: $text-2;
+    color: v.$text-2;
   }
 
   button.alert-dialog-no {
-    color: $text-1;
-    background-color: $gray-3;
+    color: v.$text-1;
+    background-color: v.$gray-3;
     font-size: 14px;
     border: 1px solid transparent;
     border-radius: 4px;
@@ -61,16 +63,16 @@
       "Noto Color Emoji";
     &:hover {
       border-color: transparent;
-      color: $text-1;
-      background-color: $gray-2 !important;
+      color: v.$text-1;
+      background-color: v.$gray-2 !important;
     }
   }
 
   button.alert-dialog-confirm {
-    color: $white;
-    background-color: $brand;
+    color: v.$white;
+    background-color: v.$brand;
     font-size: 14px;
-    border: 1px solid $brand-light;
+    border: 1px solid v.$brand-light;
     border-radius: 4px;
     font-weight: 600;
     font-family: "Chinese Quotes", "Inter var", "Inter", ui-sans-serif,
@@ -79,9 +81,9 @@
       "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
       "Noto Color Emoji";
     &:hover {
-      border-color: $brand-light;
-      color: $text-1;
-      background-color: $brand-light !important;
+      border-color: v.$brand-light;
+      color: v.$text-1;
+      background-color: v.$brand-light !important;
     }
   }
 }

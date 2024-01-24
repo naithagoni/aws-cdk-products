@@ -1,11 +1,13 @@
+@use "variables" as v;
+
 table {
   width: 100%;
   border-collapse: collapse;
 }
 
 tr {
-  background-color: $bg;
-  border-top: 1px solid $divider;
+  background-color: v.$bg;
+  border-top: 1px solid v.$divider;
   transition: background-color 0.5s;
 }
 
@@ -13,7 +15,7 @@ th,
 td {
   padding: 8px;
   text-align: left;
-  border: 1px solid $divider;
+  border: 1px solid v.$divider;
 }
 
 td {
@@ -23,13 +25,13 @@ td {
 th {
   font-size: 14px;
   font-weight: 600;
-  color: $text-2;
-  background-color: $bg-soft;
+  color: v.$text-2;
+  background-color: v.$bg-soft;
 }
 
 tbody tr:nth-child(2n) {
-  background-color: $bg-soft;
-  color: $text-1;
+  background-color: v.$bg-soft;
+  color: v.$text-1;
 }
 
 // tbody tr:hover {

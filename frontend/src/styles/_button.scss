@@ -1,3 +1,5 @@
+@use "variables" as v;
+
 .button {
   border-radius: 4px;
   padding: 0.6em 1.2em;
@@ -8,25 +10,25 @@
   transition: border-color 0.25s;
 
   &--primary {
-    border: 1px solid $brand-light;
-    background-color: $brand;
-    color: $white;
+    border: 1px solid v.$brand-light;
+    background-color: v.$brand;
+    color: v.$white;
 
     &:hover {
-      border-color: $brand-light;
-      color: $text-1;
-      background-color: $brand-light;
+      border-color: v.$brand-light;
+      color: v.$text-1;
+      background-color: v.$brand-light;
     }
   }
 
   &--secondary {
     border: 1px solid transparent;
-    background-color: $bg-alt;
-    color: $text-2;
+    background-color: v.$bg-alt;
+    color: v.$text-2;
 
     &:hover {
-      border-color: $indigo-1;
-      color: $text-1;
+      border-color: v.$indigo-1;
+      color: v.$text-1;
     }
 
     &:focus,
@@ -37,7 +39,7 @@
     &:disabled {
       border-color: transparent;
       cursor: not-allowed;
-      color: $text-3;
+      color: v.$text-3;
     }
   }
 }

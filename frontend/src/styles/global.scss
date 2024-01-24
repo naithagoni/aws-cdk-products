@@ -1,1 +1,7 @@
-@import "./index";
+@forward "variables";
+@forward "typography";
+@forward "table";
+@forward "mat";
+@forward "input";
+@forward "card";
+@forward "button";
