@@ -27,7 +27,7 @@ const Table: React.FC<TableProps> = ({ data, onDeleteUser, onAddUser }) => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
-  const { deleteUser } = useDeleteUser(selectedUser?.id + "");
+  const { deleteUser } = useDeleteUser(selectedUser?.itemId + "");
   const { createUser } = useCreateUser();
 
   const handleConfirmDelete = async () => {
@@ -35,7 +35,7 @@ const Table: React.FC<TableProps> = ({ data, onDeleteUser, onAddUser }) => {
       setIsConfirmDialogOpen(false);
       try {
         await deleteUser();
-        onDeleteUser(selectedUser.id.toString());
+        onDeleteUser(selectedUser.itemId);
       } catch (error) {
         console.error("Error deleting user:", error);
       } finally {
@@ -72,7 +72,7 @@ const Table: React.FC<TableProps> = ({ data, onDeleteUser, onAddUser }) => {
     try {
       const res = await createUser(fData);
       const newUser: User = {
-        id: res.id,
+        itemId: res.itemId,
         email: fData.email,
         username: fData.username,
         password: fData.password,
@@ -98,7 +98,7 @@ const Table: React.FC<TableProps> = ({ data, onDeleteUser, onAddUser }) => {
 
   const columns: Column<User>[] = useMemo(
     () => [
-      { Header: "ID", accessor: (row: User) => row.id.toString() },
+      { Header: "ID", accessor: (row: User) => row.itemId },
       { Header: "First Name", accessor: (row: User) => row.name.firstname },
       { Header: "Last Name", accessor: (row: User) => row.name.lastname },
       { Header: "Email", accessor: "email" },
@@ -134,58 +134,12 @@ const Table: React.FC<TableProps> = ({ data, onDeleteUser, onAddUser }) => {
   const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
     useTable({ columns, data });
 
-  // Check if there's data
-  if (!data || data.length === 0) return <p>No data available</p>;
-
   return (
     <React.Fragment>
-      <div className="table-container">
-        <h1>Users List</h1>
-        <div className="add-user-button-container">
-          <IconButton
-            className="add-user-button"
-            onClick={() => handleAddUser()}
-          >
-            <AddCircleOutlineIcon />
-          </IconButton>
-        </div>
-        <table {...getTableProps()}>
-          <thead>
-            {headerGroups.map((headerGroup) => (
-              <tr {...headerGroup.getHeaderGroupProps()}>
-                {headerGroup.headers.map((column) => (
-                  <th {...column.getHeaderProps()}>
-                    {column.render("Header")}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody {...getTableBodyProps()}>
-            {rows.map((row) => {
-              prepareRow(row);
-              return (
-                <tr {...row.getRowProps()}>
-                  {row.cells.map((cell) => (
-                    <td {...cell.getCellProps()}>{cell.render("Cell")}</td>
-                  ))}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-        {isEditDialogOpen && <p>Edit Dialog box</p>}
-        {isConfirmDialogOpen && (
-          <DialogConfirm
-            open={isConfirmDialogOpen}
-            data={selectedUser}
-            handleClose={() => {
-              setSelectedUser(null);
-              setIsConfirmDialogOpen(false);
-            }}
-            handleConfirm={handleConfirmDelete}
-          />
-        )}
+      <div className="add-user-button-container">
+        <IconButton className="add-user-button" onClick={() => handleAddUser()}>
+          <AddCircleOutlineIcon />
+        </IconButton>
         {isAddUserDialogOpen && (
           <DialogAddUser
             open={isAddUserDialogOpen}
@@ -193,6 +147,51 @@ const Table: React.FC<TableProps> = ({ data, onDeleteUser, onAddUser }) => {
           />
         )}
       </div>
+
+      {data && data.length === 0 && <p>No data available</p>}
+
+      {data.length > 0 && (
+        <div className="table-container">
+          <h1>Users List</h1>
+          <table {...getTableProps()}>
+            <thead>
+              {headerGroups.map((headerGroup) => (
+                <tr {...headerGroup.getHeaderGroupProps()}>
+                  {headerGroup.headers.map((column) => (
+                    <th {...column.getHeaderProps()}>
+                      {column.render("Header")}
+                    </th>
+                  ))}
+                </tr>
+              ))}
+            </thead>
+            <tbody {...getTableBodyProps()}>
+              {rows.map((row) => {
+                prepareRow(row);
+                return (
+                  <tr {...row.getRowProps()}>
+                    {row.cells.map((cell) => (
+                      <td {...cell.getCellProps()}>{cell.render("Cell")}</td>
+                    ))}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          {isEditDialogOpen && <p>Edit Dialog box</p>}
+          {isConfirmDialogOpen && (
+            <DialogConfirm
+              open={isConfirmDialogOpen}
+              data={selectedUser}
+              handleClose={() => {
+                setSelectedUser(null);
+                setIsConfirmDialogOpen(false);
+              }}
+              handleConfirm={handleConfirmDelete}
+            />
+          )}
+        </div>
+      )}
     </React.Fragment>
   );
 };

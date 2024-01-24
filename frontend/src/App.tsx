@@ -17,7 +17,7 @@ const App = () => {
   const handleDeleteUser = (deletedUserId: string) => {
     // Update the table data by filtering out the deleted user
     const updatedData = tableData.filter(
-      (user) => user.id.toString() !== deletedUserId
+      (user) => user.itemId !== deletedUserId
     );
     setTableData(updatedData);
   };

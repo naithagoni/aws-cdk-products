@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import usersApi from "../services/usersApi";
 import axios, { AxiosError, AxiosResponse } from "axios";
-import { AddUser } from "../types/user";
+import { User } from "../types/user";
 
 const useCreateUser = () => {
   const [loading, setLoading] = useState(false);
@@ -13,7 +13,8 @@ const useCreateUser = () => {
       const cancelToken = axios.CancelToken.source();
       try {
         setLoading(true);
-        const userReq: AddUser = {
+        const userReq: User = {
+          itemId: "1", // TODO: Add unique id
           email: user.email,
           username: user.username,
           password: user.password,
