@@ -40,7 +40,7 @@
 ![alt text](./images/architecture_diagram.png "Architecture")
 
 
-  > - Before proceding, create a `templates` directory - ```mkdir templates```
+  > - Before proceding, create a `templates` directory in the root of the project - ```mkdir templates```
 
 ## Bootstraping the stack
 
