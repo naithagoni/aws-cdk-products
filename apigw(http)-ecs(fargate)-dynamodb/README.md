@@ -29,7 +29,7 @@
 1. To run this project, execute the following commands.
    ```
    - git clone https://github.com/naithagoni/aws-cdk-projects.git
-   - cd aws-cdk-projects/apigw(http)-ecs(fargate)-dynamodb/src
+   - cd aws-cdk-projects/apigw(http)-ecs(fargate)-dynamodb
    - npm i
    - cd aws-cdk-projects/apigw(http)-ecs(fargate)-dynamodb
    - npm i
@@ -38,6 +38,9 @@
 ## Application architecture diagram
 
 ![alt text](./images/architecture_diagram.png "Architecture")
+
+
+  > - Before proceding, create a `templates` directory - ```mkdir templates```
 
 ## Bootstraping the stack
 

@@ -4,6 +4,7 @@ import * as iam from "aws-cdk-lib/aws-iam";
 export class IamConfig extends Construct {
   public taskRole: iam.Role;
   public executionRole: iam.Role;
+  public apiGatewayRole: iam.Role;
 
   constructor(scope: Construct, id: string, dyTableArn: string) {
     super(scope, id);
@@ -53,6 +54,19 @@ export class IamConfig extends Construct {
       )
     );
 
+    // Create a custom IAM role for API Gateway
+    const apiGateRole = new iam.Role(this, "ApiGatewayCloudWatchLogsRole", {
+      assumedBy: new iam.ServicePrincipal("apigateway.amazonaws.com"),
+    });
+
+    // Attach an existing inline policy to the IAM role
+    apiGateRole.addManagedPolicy(
+      iam.ManagedPolicy.fromAwsManagedPolicyName(
+        "AmazonAPIGatewayPushToCloudWatchLogs"
+      )
+    );
+
     this.executionRole = execRole;
+    this.apiGatewayRole = apiGateRole;
   }
 }

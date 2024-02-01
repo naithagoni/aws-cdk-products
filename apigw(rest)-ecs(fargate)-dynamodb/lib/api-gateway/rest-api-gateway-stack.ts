@@ -1,7 +1,8 @@
 import { Construct } from "constructs";
+import { RemovalPolicy } from "aws-cdk-lib/core";
+import * as logs from "aws-cdk-lib/aws-logs";
 import * as apigwv from "aws-cdk-lib/aws-apigateway";
 import * as apigwv2 from "aws-cdk-lib/aws-apigatewayv2";
-import { HttpAlbIntegration } from "aws-cdk-lib/aws-apigatewayv2-integrations";
 import { FargateConfig } from "../application-load-balancer/fargate-stack";
 import { VpcConfig } from "../virtual-private-cloud/vpc-config";
 import { DynamoDbConfig } from "../dynamodb/dynamodb-stack";
@@ -9,7 +10,7 @@ import { LogsConfig } from "../logs/logs-stack";
 import { IamConfig } from "../iam/iam-stack";
 import { EcsClusterConfig } from "../elastic-container-service/ecs-stack";
 
-export class HttpApiGatewayConfig extends Construct {
+export class RestApiGatewayConfig extends Construct {
   public restApi: apigwv.RestApi;
   constructor(scope: Construct, id: string) {
     super(scope, id);
@@ -39,39 +40,27 @@ export class HttpApiGatewayConfig extends Construct {
       iamConfig.taskRole
     );
 
-    // const vpcLink = new apigwv2.VpcLink(this, "my-vpc-link", {
-    //   vpc: vpcConfig.vpc,
-    //   vpcLinkName: "my-vpc-link",
-    //   subnets: vpcConfig.vpc,
-    //   securityGroups: [vpcConfig.securityGroup],
-    // });
-
-    // Create an integration
-    // const integration = new HttpAlbIntegration(
-    //   "my-rest-api-private-alb-integration",
     //   fargateConfig.fargateService.listener,
-    //   { vpcLink }
-    // );
-
     const integration = new apigwv.Integration({
-      type: apigwv.IntegrationType.HTTP,
+      type: apigwv.IntegrationType.HTTP_PROXY,
       integrationHttpMethod: "ANY",
-      uri: fargateConfig.fargateService.loadBalancer.loadBalancerDnsName,
-      // options: {
-      //   connectionType: apigwv.ConnectionType.VPC_LINK,
-      //   vpcLink: vpcLink,
-      // },
+      uri: `http://${fargateConfig.fargateService.loadBalancer.loadBalancerDnsName}`,
     });
+
+    const restApiLogGroup = new logs.LogGroup(this, "my-rest-api-log-group");
 
     const api = new apigwv.RestApi(this, id, {
       restApiName: id,
       description: "This is a basic REST API Gateway",
       endpointTypes: [apigwv.EndpointType.REGIONAL],
-      // deploy: true,
-      // deployOptions: {
-      //   stageName: "dev",
-      //   description: "This is a dev stage",
-      // },
+      deployOptions: {
+        accessLogDestination: new apigwv.LogGroupLogDestination(
+          restApiLogGroup
+        ),
+        accessLogFormat: apigwv.AccessLogFormat.jsonWithStandardFields(),
+      },
+      cloudWatchRole: true, // Automatically configure an AWS CloudWatch role for API Gateway.
+      cloudWatchRoleRemovalPolicy: RemovalPolicy.DESTROY,
       defaultCorsPreflightOptions: {
         allowCredentials: false,
         allowHeaders: apigwv.Cors.DEFAULT_HEADERS,
@@ -81,27 +70,44 @@ export class HttpApiGatewayConfig extends Construct {
     });
 
     // Create API Gateway Deployment
-    const apiGatewaydeployment = new apigwv.Deployment(
+    const deployment = new apigwv.Deployment(this, "my-rest-api-deployment", {
+      api: api,
+      description: "Initial deployment",
+    });
+
+    const restApiStageLogGroup = new logs.LogGroup(
       this,
-      "my-rest-api-deployment",
-      {
-        api: api,
-        description: "Initial deployment",
-      }
+      "my-rest-api-stage-log-group"
     );
 
     // Create "dev" Stage
     const stage = new apigwv.Stage(this, "my-rest-api-stage", {
-      deployment: apiGatewaydeployment,
+      deployment: deployment,
       stageName: "dev",
       variables: {},
+      accessLogDestination: new apigwv.LogGroupLogDestination(
+        restApiStageLogGroup
+      ),
+      accessLogFormat: apigwv.AccessLogFormat.jsonWithStandardFields({
+        caller: false,
+        httpMethod: true,
+        ip: true,
+        protocol: true,
+        requestTime: true,
+        resourcePath: true,
+        responseLength: true,
+        status: true,
+        user: true,
+      }),
     });
 
     // Associate the "dev" Stage with the API Gateway
     api.deploymentStage = stage;
 
     // Request and Response Models
-    const userModel: apigwv.Model = api.addModel("my-rest-api-model", {
+    const userModel: apigwv.Model = api.addModel("UserResponseModel", {
+      contentType: "application/json",
+      modelName: "UserResponseModel",
       schema: {
         type: apigwv.JsonSchemaType.OBJECT,
         properties: {
@@ -131,34 +137,24 @@ export class HttpApiGatewayConfig extends Construct {
     });
 
     // Configure validators
-    const requestValidator = api.addRequestValidator(
+    const requestValidator = new apigwv.RequestValidator(
+      this,
       "my-rest-api-request-validator",
       {
+        restApi: api,
         requestValidatorName: "my-rest-api-request-validator",
-        validateRequestParameters: true,
         validateRequestBody: true,
+        validateRequestParameters: true,
       }
     );
 
     // Create Routes, Methods, and attach an integration
     /**  CREATE RESOURCES */
     // for -Items
-    const items = api.root.addResource("items", {
-      defaultCorsPreflightOptions: {
-        allowOrigins: apigwv.Cors.ALL_ORIGINS,
-        allowHeaders: apigwv.Cors.DEFAULT_HEADERS,
-        allowMethods: apigwv.Cors.ALL_METHODS,
-      },
-    });
+    const items = api.root.addResource("items", {});
 
     // for -Item
-    const item = items.addResource("{id}", {
-      defaultCorsPreflightOptions: {
-        allowOrigins: apigwv.Cors.ALL_ORIGINS,
-        allowHeaders: apigwv.Cors.DEFAULT_HEADERS,
-        allowMethods: apigwv.Cors.ALL_METHODS,
-      },
-    });
+    const item = items.addResource("{id}", {});
 
     /**  CREATE METHODS */
     //  for - Items
