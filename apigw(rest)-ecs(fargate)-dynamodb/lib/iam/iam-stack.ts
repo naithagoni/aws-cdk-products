@@ -54,19 +54,19 @@ export class IamConfig extends Construct {
       )
     );
 
-    // Create a custom IAM role for API Gateway
-    const apiGateRole = new iam.Role(this, "ApiGatewayCloudWatchLogsRole", {
-      assumedBy: new iam.ServicePrincipal("apigateway.amazonaws.com"),
-    });
+    // // Create a custom IAM role for API Gateway
+    // const apiGateRole = new iam.Role(this, "ApiGatewayCloudWatchLogsRole", {
+    //   assumedBy: new iam.ServicePrincipal("apigateway.amazonaws.com"),
+    // });
 
-    // Attach an existing inline policy to the IAM role
-    apiGateRole.addManagedPolicy(
-      iam.ManagedPolicy.fromAwsManagedPolicyName(
-        "AmazonAPIGatewayPushToCloudWatchLogs"
-      )
-    );
+    // // Attach an existing inline policy to the IAM role
+    // apiGateRole.addManagedPolicy(
+    //   iam.ManagedPolicy.fromAwsManagedPolicyName(
+    //     "service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+    //   )
+    // );
 
     this.executionRole = execRole;
-    this.apiGatewayRole = apiGateRole;
+    // this.apiGatewayRole = apiGateRole;
   }
 }

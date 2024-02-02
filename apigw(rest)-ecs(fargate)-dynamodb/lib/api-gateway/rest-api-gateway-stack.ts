@@ -40,13 +40,6 @@ export class RestApiGatewayConfig extends Construct {
       iamConfig.taskRole
     );
 
-    //   fargateConfig.fargateService.listener,
-    const integration = new apigwv.Integration({
-      type: apigwv.IntegrationType.HTTP_PROXY,
-      integrationHttpMethod: "ANY",
-      uri: `http://${fargateConfig.fargateService.loadBalancer.loadBalancerDnsName}`,
-    });
-
     const restApiLogGroup = new logs.LogGroup(this, "my-rest-api-log-group");
 
     const api = new apigwv.RestApi(this, id, {
@@ -61,12 +54,7 @@ export class RestApiGatewayConfig extends Construct {
       },
       cloudWatchRole: true, // Automatically configure an AWS CloudWatch role for API Gateway.
       cloudWatchRoleRemovalPolicy: RemovalPolicy.DESTROY,
-      defaultCorsPreflightOptions: {
-        allowCredentials: false,
-        allowHeaders: apigwv.Cors.DEFAULT_HEADERS,
-        allowMethods: apigwv.Cors.ALL_METHODS,
-        allowOrigins: apigwv.Cors.ALL_ORIGINS,
-      },
+      endpointExportName: "my-rest-api-url",
     });
 
     // Create API Gateway Deployment
@@ -136,54 +124,269 @@ export class RestApiGatewayConfig extends Construct {
       },
     });
 
-    // Configure validators
-    const requestValidator = new apigwv.RequestValidator(
-      this,
-      "my-rest-api-request-validator",
-      {
-        restApi: api,
-        requestValidatorName: "my-rest-api-request-validator",
-        validateRequestBody: true,
-        validateRequestParameters: true,
-      }
-    );
-
     // Create Routes, Methods, and attach an integration
     /**  CREATE RESOURCES */
     // for -Items
-    const items = api.root.addResource("items", {});
+    const items = api.root.addResource("items", {
+      defaultCorsPreflightOptions: {
+        allowCredentials: false,
+        allowHeaders: ["*"],
+        allowMethods: ["*"],
+        allowOrigins: ["*"],
+      },
+    });
 
     // for -Item
-    const item = items.addResource("{id}", {});
+    const item = items.addResource("{id}", {
+      defaultCorsPreflightOptions: {
+        allowCredentials: false,
+        allowHeaders: apigwv.Cors.DEFAULT_HEADERS,
+        allowMethods: apigwv.Cors.ALL_METHODS,
+        allowOrigins: apigwv.Cors.ALL_ORIGINS,
+      },
+    });
 
     /**  CREATE METHODS */
     //  for - Items
-    items.addMethod(apigwv2.HttpMethod.GET, integration, {
-      requestValidator: requestValidator,
-    });
+    items.addMethod(
+      apigwv2.HttpMethod.GET,
+      // 2. Integration Request
+      new apigwv.Integration({
+        type: apigwv.IntegrationType.HTTP,
+        integrationHttpMethod: apigwv2.HttpMethod.GET,
+        uri: `http://${fargateConfig.fargateService.loadBalancer.loadBalancerDnsName}/items`,
+        options: {
+          passthroughBehavior: apigwv.PassthroughBehavior.WHEN_NO_MATCH,
+          // 3. Integration Response
+          // Mapping templates
+          requestTemplates: {
+            "application/json": "{ }",
+          },
+          integrationResponses: [
+            {
+              statusCode: "200",
+            },
+          ],
+        },
+      }),
+      {
+        // 4. Method Response
+        methodResponses: [
+          {
+            statusCode: "200",
+            responseParameters: {},
+            // Response Body
+            responseModels: {
+              "application/json": userModel,
+            },
+          },
+        ],
+        // 1. Method Request
+        operationName: "GET Items",
+        authorizationType: apigwv.AuthorizationType.NONE,
+        apiKeyRequired: false,
+        requestValidatorOptions: {
+          validateRequestBody: false,
+          validateRequestParameters: true,
+        },
+      }
+    );
 
-    items.addMethod(apigwv2.HttpMethod.POST, integration, {
-      requestModels: {
-        "application/json": userModel,
-      },
-      requestValidator: requestValidator,
-    });
+    items.addMethod(
+      apigwv2.HttpMethod.POST,
+      // 2. Integration Request
+      new apigwv.Integration({
+        type: apigwv.IntegrationType.HTTP,
+        integrationHttpMethod: apigwv2.HttpMethod.POST,
+        uri: `http://${fargateConfig.fargateService.loadBalancer.loadBalancerDnsName}/items`,
+        options: {
+          passthroughBehavior: apigwv.PassthroughBehavior.WHEN_NO_MATCH,
+          // 3. Integration Response
+          // Mapping templates
+          // requestTemplates: {
+          //   "application/json": '{ "statusCode": 200 }',
+          // },
+          integrationResponses: [
+            {
+              statusCode: "201",
+            },
+          ],
+        },
+      }),
+      {
+        // 4. Method Response
+        methodResponses: [
+          {
+            statusCode: "201",
+            responseParameters: {},
+            responseModels: {
+              "application/json": userModel,
+            },
+          },
+        ],
+        // 1. Method Request
+        //? The models which describe data structure of request payload.
+        requestModels: {
+          "application/json": userModel,
+        },
+        operationName: "POST Item",
+        authorizationType: apigwv.AuthorizationType.NONE,
+        apiKeyRequired: false,
+        requestValidatorOptions: {
+          validateRequestBody: true,
+          validateRequestParameters: true,
+        },
+      }
+    );
 
     // for - Item
-    item.addMethod(apigwv2.HttpMethod.GET, integration, {
-      requestValidator: requestValidator,
-    });
+    item.addMethod(
+      apigwv2.HttpMethod.GET,
+      // 2. Integration Request
+      new apigwv.Integration({
+        type: apigwv.IntegrationType.HTTP,
+        integrationHttpMethod: apigwv2.HttpMethod.GET,
+        uri: `http://${fargateConfig.fargateService.loadBalancer.loadBalancerDnsName}/items/{id}`,
+        options: {
+          passthroughBehavior: apigwv.PassthroughBehavior.WHEN_NO_MATCH,
+          requestParameters: {
+            //! if you use itemId in your path, then you have to map your params like: - id: "method.request.path.itemId",
+            // "integration.request.path.id": "method.request.path.id",
+            ["id"]: "method.request.path.id",
+          },
+          // 3. Integration Response
+          // Mapping templates
+          // requestTemplates: {
+          //   "application/json": '{ "statusCode": 200 }',
+          // },
+          integrationResponses: [
+            {
+              statusCode: "200",
+            },
+          ],
+        },
+      }),
+      {
+        // 4. Method Response
+        methodResponses: [
+          {
+            statusCode: "200",
+            responseParameters: {},
+            responseModels: {
+              "application/json": userModel,
+            },
+          },
+        ],
+        // 1. Method Request
+        operationName: "GET Item",
+        authorizationType: apigwv.AuthorizationType.NONE,
+        apiKeyRequired: false,
+        requestParameters: {
+          ["id"]: true,
+        },
+        requestValidatorOptions: {
+          validateRequestBody: false,
+          validateRequestParameters: true,
+        },
+      }
+    );
 
-    item.addMethod(apigwv2.HttpMethod.PUT, integration, {
-      requestModels: {
-        "application/json": userModel,
-      },
-      requestValidator: requestValidator,
-    });
+    item.addMethod(
+      apigwv2.HttpMethod.PUT,
+      // 2. Integration Request
+      new apigwv.Integration({
+        type: apigwv.IntegrationType.HTTP,
+        integrationHttpMethod: apigwv2.HttpMethod.PUT,
+        uri: `http://${fargateConfig.fargateService.loadBalancer.loadBalancerDnsName}/items/{id}`,
+        options: {
+          passthroughBehavior: apigwv.PassthroughBehavior.WHEN_NO_MATCH,
+          // requestParameters: {
+          //   //! if you use itemId in your path, then you have to map your params like: - id: "method.request.path.itemId",
+          //   ["id"]: "method.request.path.id",
+          // },
+          // 3. Integration Response
+          // Mapping templates
+          // requestTemplates: {
+          //   "application/json": '{ "statusCode": 200 }',
+          // },
+          integrationResponses: [
+            {
+              statusCode: "201",
+            },
+          ],
+        },
+      }),
+      {
+        // 4. Method Response
+        methodResponses: [
+          {
+            statusCode: "201",
+            responseParameters: {},
+            responseModels: {
+              "application/json": userModel,
+            },
+          },
+        ],
+        // 1. Method Request
+        requestModels: {
+          "application/json": userModel,
+        },
+        operationName: "PUT Item",
+        authorizationType: apigwv.AuthorizationType.NONE,
+        apiKeyRequired: false,
+        requestValidatorOptions: {
+          validateRequestBody: true,
+          validateRequestParameters: true,
+        },
+      }
+    );
 
-    item.addMethod(apigwv2.HttpMethod.DELETE, integration, {
-      requestValidator: requestValidator,
-    });
+    item.addMethod(
+      apigwv2.HttpMethod.DELETE,
+      // 2. Integration Request
+      new apigwv.Integration({
+        type: apigwv.IntegrationType.HTTP,
+        integrationHttpMethod: apigwv2.HttpMethod.DELETE,
+        uri: `http://${fargateConfig.fargateService.loadBalancer.loadBalancerDnsName}/items/{id}`,
+        options: {
+          passthroughBehavior: apigwv.PassthroughBehavior.WHEN_NO_MATCH,
+          // requestParameters: {
+          //   //! if you use itemId in your path, then you have to map your params like: - id: "method.request.path.itemId",
+          //   ["id"]: "method.request.path.id",
+          // },
+          // 3. Integration Response
+          // Mapping templates
+          // requestTemplates: {
+          //   "application/json": '{ "statusCode": 200 }',
+          // },
+          integrationResponses: [
+            {
+              statusCode: "200",
+            },
+          ],
+        },
+      }),
+      {
+        // 4. Method Response
+        methodResponses: [
+          {
+            statusCode: "200",
+            responseParameters: {},
+            responseModels: {
+              "application/json": userModel,
+            },
+          },
+        ],
+        // 1. Method Request
+        operationName: "DELETE Item",
+        authorizationType: apigwv.AuthorizationType.NONE,
+        apiKeyRequired: false,
+        requestValidatorOptions: {
+          validateRequestBody: false,
+          validateRequestParameters: true,
+        },
+      }
+    );
 
     this.restApi = api;
   }
