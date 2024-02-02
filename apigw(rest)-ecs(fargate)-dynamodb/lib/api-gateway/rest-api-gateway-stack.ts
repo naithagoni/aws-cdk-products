@@ -203,9 +203,9 @@ export class RestApiGatewayConfig extends Construct {
           passthroughBehavior: apigwv.PassthroughBehavior.WHEN_NO_MATCH,
           // 3. Integration Response
           // Mapping templates
-          // requestTemplates: {
-          //   "application/json": '{ "statusCode": 200 }',
-          // },
+          requestTemplates: {
+            "application/json": "{ }",
+          },
           integrationResponses: [
             {
               statusCode: "201",
@@ -250,15 +250,14 @@ export class RestApiGatewayConfig extends Construct {
         options: {
           passthroughBehavior: apigwv.PassthroughBehavior.WHEN_NO_MATCH,
           requestParameters: {
-            //! if you use itemId in your path, then you have to map your params like: - id: "method.request.path.itemId",
-            // "integration.request.path.id": "method.request.path.id",
-            ["id"]: "method.request.path.id",
+            //! if you use id/itemId in your path, then you have to map your params
+            ["integration.request.path.id"]: "method.request.path.id",
           },
           // 3. Integration Response
           // Mapping templates
-          // requestTemplates: {
-          //   "application/json": '{ "statusCode": 200 }',
-          // },
+          requestTemplates: {
+            "application/json": "{ }",
+          },
           integrationResponses: [
             {
               statusCode: "200",
@@ -282,7 +281,7 @@ export class RestApiGatewayConfig extends Construct {
         authorizationType: apigwv.AuthorizationType.NONE,
         apiKeyRequired: false,
         requestParameters: {
-          ["id"]: true,
+          ["method.request.path.id"]: true,
         },
         requestValidatorOptions: {
           validateRequestBody: false,
@@ -300,15 +299,15 @@ export class RestApiGatewayConfig extends Construct {
         uri: `http://${fargateConfig.fargateService.loadBalancer.loadBalancerDnsName}/items/{id}`,
         options: {
           passthroughBehavior: apigwv.PassthroughBehavior.WHEN_NO_MATCH,
-          // requestParameters: {
-          //   //! if you use itemId in your path, then you have to map your params like: - id: "method.request.path.itemId",
-          //   ["id"]: "method.request.path.id",
-          // },
+          requestParameters: {
+            //! if you use itemId in your path, then you have to map your params
+            ["integration.request.path.id"]: "method.request.path.id",
+          },
           // 3. Integration Response
           // Mapping templates
-          // requestTemplates: {
-          //   "application/json": '{ "statusCode": 200 }',
-          // },
+          requestTemplates: {
+            "application/json": "{ }",
+          },
           integrationResponses: [
             {
               statusCode: "201",
@@ -334,6 +333,9 @@ export class RestApiGatewayConfig extends Construct {
         operationName: "PUT Item",
         authorizationType: apigwv.AuthorizationType.NONE,
         apiKeyRequired: false,
+        requestParameters: {
+          ["method.request.path.id"]: true,
+        },
         requestValidatorOptions: {
           validateRequestBody: true,
           validateRequestParameters: true,
@@ -350,15 +352,15 @@ export class RestApiGatewayConfig extends Construct {
         uri: `http://${fargateConfig.fargateService.loadBalancer.loadBalancerDnsName}/items/{id}`,
         options: {
           passthroughBehavior: apigwv.PassthroughBehavior.WHEN_NO_MATCH,
-          // requestParameters: {
-          //   //! if you use itemId in your path, then you have to map your params like: - id: "method.request.path.itemId",
-          //   ["id"]: "method.request.path.id",
-          // },
+          requestParameters: {
+            //! if you use itemId in your path, then you have to map your params
+            ["integration.request.path.id"]: "method.request.path.id",
+          },
           // 3. Integration Response
           // Mapping templates
-          // requestTemplates: {
-          //   "application/json": '{ "statusCode": 200 }',
-          // },
+          requestTemplates: {
+            "application/json": "{}",
+          },
           integrationResponses: [
             {
               statusCode: "200",
@@ -381,6 +383,9 @@ export class RestApiGatewayConfig extends Construct {
         operationName: "DELETE Item",
         authorizationType: apigwv.AuthorizationType.NONE,
         apiKeyRequired: false,
+        requestParameters: {
+          ["method.request.path.id"]: true,
+        },
         requestValidatorOptions: {
           validateRequestBody: false,
           validateRequestParameters: true,
